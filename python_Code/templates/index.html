@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Pong Status</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            function getStatus() {
+                $.ajax({
+                    url: '/get_status',
+                    type: 'GET',
+                    success: function (data) {
+                        $('#cupA').text(data.cup_A_status ? 'Erster Becher ist platziert.' : 'Erster Becher wurde entfernt.');
+                        $('#cupB').text(data.cup_B_status ? 'Zweiter Becher ist platziert.' : 'Zweiter Becher wurde entfernt.');
+                    }
+                });
+            }
+
+            setInterval(getStatus, 1); // Alle 1 Sekunde aktualisieren
+        });
+    </script>
+</head>
+<body>
+    <h1>Smart Pong Status</h1>
+    <div id="cupA">Cup A Status: </div>
+    <div id="cupB">Cup B Status: </div>
+</body>
+</html>
