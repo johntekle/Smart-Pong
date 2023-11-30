@@ -4,12 +4,17 @@
 Adafruit_VL53L0X sensor1 = Adafruit_VL53L0X();
 Adafruit_VL53L0X sensor2 = Adafruit_VL53L0X();
 
+static int button = 0;
+static bool button_state = true;
+
 void setup()
 {
     Serial.begin(115200);
     Serial1.begin(230400); // Initialize Serial1
 
     pinMode(13, OUTPUT);
+    pinMode(12, INPUT_PULLUP);
+
     digitalWrite(13, LOW);
 
     Serial.println("Initialising the first sensor...");
@@ -45,7 +50,8 @@ void loop()
     interface(
         Serial1,
         get_sensor1, "get_sensor1:",
-        get_sensor2, "get_sensor2:");
+        get_sensor2, "get_sensor2:",
+        get_button, "get_button:");
 
     // if (sensor1.isRangeComplete())
     // {
@@ -78,4 +84,9 @@ bool get_sensor2(void)
             res = true;
     }
     return res;
+}
+
+bool get_button(void)
+{
+    return (digitalRead(12) ? true : false);
 }
