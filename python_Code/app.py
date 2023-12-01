@@ -10,6 +10,7 @@ smart_rpc = None
 
 cupA_detected = False
 cupB_detected = False
+button_detected = False
 
 smart_rpc = Smart_Pong_RPC("COM11")
 time.sleep(3)
@@ -47,8 +48,8 @@ def index():
 
 @app.route('/get_status')
 def get_status():
-    global cupA_detected, cupB_detected
-    return {'cup_A_status': cupA_detected, 'cup_B_status': cupB_detected}
+    global cupA_detected, cupB_detected, button_detected
+    return {'cup_A_status': cupA_detected, 'cup_B_status': cupB_detected, 'button_status': button_detected}
 
 if __name__ == '__main__':
     poll_thread = Thread(target=poll_sensors)
