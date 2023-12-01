@@ -4,15 +4,167 @@
     <meta charset="UTF-8">
     <title>Smart Pong Status</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles-confetti@2.12.0/tsparticles.confetti.bundle.min.js"></script>
     <script>
+        game_status = false;
+        player = true;
+        button_pressed_time = 0;
+        button_status = "";
+        can_reset = false;
+        show_win_massage = 0;
+
+        game_nr = 0;
+        win_a = 0;
+        win_b = 0;
+        plays_a = 0;
+        plays_b = 0;
+        lets_start_game = 0;
+
+        // Get status from server
         $(document).ready(function () {
             function getStatus() {
                 $.ajax({
                     url: '/get_status',
                     type: 'GET',
                     success: function (data) {
-                        $('#cupA').text(data.cup_A_status ? 'Erster Becher ist platziert.' : 'Erster Becher wurde entfernt.');
-                        $('#cupB').text(data.cup_B_status ? 'Zweiter Becher ist platziert.' : 'Zweiter Becher wurde entfernt.');
+                        // show wich cups are placed
+                        $('#cupA').css('background-color', data.cup_A_status ? '#006400' : '#D22B2B')
+                        $('#cupB').css('background-color', data.cup_B_status ? '#006400' : '#D22B2B')
+                        //$('#waslauft').text(data.button_status ? 'PRESSED' : 'RELEASED')
+                        //$('#waslauft2').text(game_status ? 'RUNNING' : 'NOT RUNNING')
+                        $('#waslauft').text('Runde: ' + game_nr + '.')
+                        $('#waslauft2').text('Anzahl Siege: ' + win_a)
+                        $('#waslauft2_').text('Anzahl Würfe: ' + plays_a)
+                        $('#waslauft3').text('Anzahl Siege: ' + win_b)
+                        $('#waslauft3_').text('Anzahl Würfe: ' + plays_b)
+
+                        if (Date.now() - lets_start_game > 3000 && lets_start_game != 0) {
+                            lets_start_game = 0;
+                            game_status = true;
+                        }
+
+                        if(show_win_massage != 0) {
+                            if (Date.now() - show_win_massage > 3000) {
+                                show_win_massage = 0;
+                                $( "body" ).animate({ backgroundColor: "#1a1625"}, 500 );
+                                $('#letter_A').css('color', '#d1ccd9')
+                                $('#letter_B').css('color', '#d1ccd9')
+                            }
+                        }
+
+                        if (show_win_massage == 0) {
+                            if (can_reset && !data.button_status) {
+                                button_status = "";
+                                can_reset = false;
+                            }
+
+                            if (data.button_status && button_pressed_time == 0 && !can_reset) {
+                                button_pressed_time = Date.now();
+                            }
+
+                            if (button_pressed_time != 0){
+                                if (Date.now() - button_pressed_time > 3000) {
+                                    button_pressed_time = 0;
+                                    button_status = "reload";
+                                    can_reset = true;
+                                }
+                                if (!data.button_status) {
+                                    button_pressed_time = 0;
+                                    button_status = "accept";
+                                    can_reset = true;
+                                }
+                            }
+
+                            // if both cups are placed and game is not running
+                            if (!game_status && show_win_massage == 0) {
+                                if (data.cup_A_status && data.cup_B_status) {
+                                    $('#status').text('Sie können das Spiel starten')
+                                    // $('#start')[0].play();
+                                    // if game is not started and button is briefly pressed
+                                    if (button_status == "accept") {
+                                        $('#game_starts')[0].play();
+                                        lets_start_game = Date.now();
+                                        game_nr++;
+                                    }
+                                } else {
+                                    $('#status').text('Plazieren Sie alle Becher um das Spiel zu starten')
+                                }
+                            }
+                            
+                            // if game is running and button is briefly pressed
+                            if (button_status == "accept" && game_status) {
+                                if (player) {
+                                    $('#status').text('Spieler A ist am Zug')
+                                    $('#player_a')[0].play();
+                                    player = false;
+                                    plays_a++;
+                                    $('#letter_A').css('color', 'gold')
+                                    $('#letter_B').css('color', '#d1ccd9')
+                                } else {
+                                    $('#status').text('Spieler B ist am Zug')
+                                    $('#player_b')[0].play();
+                                    player = true;
+                                    plays_b++;
+                                    $('#letter_A').css('color', '#d1ccd9')
+                                    $('#letter_B').css('color', 'gold')
+                                }
+                            }
+
+                            // if game is running and button is long pressed
+                            if (button_status == "reload" && game_status) {
+                                $('#status').text('Das Spiel wird neugestartet')
+                                $('#reload')[0].play();
+                                game_status = false;
+                                player = true;
+                                game_nr = 0;
+                                win_a = 0;
+                                win_b = 0;
+                                plays_a = 0;
+                                plays_b = 0;
+                                show_win_massage = Date.now();
+                                $( "body" ).animate({ backgroundColor: "#291d1d"}, 1000 );
+                            }
+
+                            // if game is running and cup A is removed
+                            if (!data.cup_A_status && game_status) {
+                                $('#status').text('Spieler B hat gewonnen')
+                                player = true;
+                                game_status = false;
+                                win_b++;
+                                show_win_massage = Date.now();
+                                $('#letter_A').css('color', '#d1ccd9');
+                                $('#letter_B').css('color', 'gold');
+                                $('#confettixx')[0].play();
+                                confetti({
+                                    particleCount: 100,
+                                    angle: 135,
+                                    spread: 70,
+                                    origin: { y: 0.6, x: 0.9 },
+                                });
+                                $('#win')[0].play();
+                                $( "body" ).animate({ backgroundColor: "#291d1d"}, 1000 );
+                            }
+
+                            // if game is running and cup B is removed
+                            if (!data.cup_B_status && game_status) {
+                                $('#status').text('Spieler A hat gewonnen')
+                                player = false;
+                                game_status = false;
+                                win_a++;
+                                show_win_massage = Date.now();
+                                $('#letter_A').css('color', 'gold');
+                                $('#letter_B').css('color', '#d1ccd9');
+                                $('#confettixx')[0].play();
+                                confetti({
+                                    particleCount: 100,
+                                    angle: 45,
+                                    spread: 70,
+                                    origin: { y: 0.6, x: 0.1 },
+                                });
+                                $('#win')[0].play();
+                                $( "body" ).animate({ backgroundColor: "#291d1d"}, 1000 );
+                            }
+                        }
                     }
                 });
             }
@@ -20,10 +172,98 @@
             setInterval(getStatus, 1); // Alle 1 Sekunde aktualisieren
         });
     </script>
+    <style>
+        body {
+            background-color: #1a1625;
+            color: #d1ccd9;
+        }
+        .dot {
+          height: 6.5vw;
+          width: 6.5vw;
+          background-color: #bbb;
+          border-radius: 50%;
+          display: inline-block;
+          margin: 20px;
+        }
+        .center {
+            margin: auto;
+            width: 50%;
+            padding: 10px;
+        }
+        .tisch {
+            margin: auto;
+            width: 65vw;
+            height: 45vw;
+            padding: 10px;
+            border: solid 20px #3e1c00;
+            background-color: #7c3f00;
+        }
+        .becher {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .text-center {
+            text-align: center;
+        }
+        h1 {
+            text-align: center;
+            color: #5e5a66;
+        }
+        #A_show {
+            text-align: center;
+            position: absolute;
+            left: 5%;
+            top: 50%;
+        }
+        #B_show {
+            text-align: center;
+            position: absolute;
+            right: 5%;
+            top: 50%;
+        }
+        #waslauft {
+            text-align: center;
+        }
+        #letter_A, #letter_B {
+            font-size: 45px;
+        }
+        </style>
 </head>
 <body>
+    <audio id="confettixx" src="https://nathzenh.ch/mockup/confetti.wav"></audio>
+    <audio id="game_starts" src="https://nathzenh.ch/mockup/game_starts.mp3"></audio></audio>
+    <audio id="player_a" src="https://nathzenh.ch/mockup/player_a.mp3"></audio></audio>
+    <audio id="player_b" src="https://nathzenh.ch/mockup/player_b.mp3"></audio></audio>
+    <audio id="reload" src="https://nathzenh.ch/mockup/reload.ogg"></audio></audio>
+    <audio id="start" src="https://nathzenh.ch/mockup/start.ogg"></audio></audio>
+    <audio id="win" src="https://nathzenh.ch/mockup/win.wav"></audio></audio>
     <h1>Smart Pong Status</h1>
-    <div id="cupA">Cup A Status: </div>
-    <div id="cupB">Cup B Status: </div>
+    <div class="center">
+        <p id="status" class="text-center">Plazieren Sie alle Becher um das Spiel zu starten</p>
+        
+        <p id="waslauft">---</p>
+        <div id="A_show">
+            <p id="letter_A">A</p>
+            <p id="waslauft2">---</p>
+            <p id="waslauft2_">---</p>
+        </div>
+        <div id="B_show">
+            <p id="letter_B">B</p>
+            <p id="waslauft3">---</p>
+            <p id="waslauft3_">---</p>
+        </div>
+        
+    </div>
+    <div class="tisch">
+        <div class="becher">
+            <span id="cupA" class="dot left"></span>
+            <span id="cupB" class="dot right"></span>
+        </div>
+    </div>
+    </div>
 </body>
 </html>
