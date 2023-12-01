@@ -24,3 +24,11 @@ class Smart_Pong_RPC():
             return False
         except Exception as e:
             print(e)
+
+    def get_button(self) -> bool:
+        try:
+            if self.Interface.get_button():
+                return True
+            return False
+        except Exception as e:
+            print(e)
