@@ -27,7 +27,7 @@ class Smart_Pong_RPC():
 
     def get_button(self) -> bool:
         try:
-            if self.Interface.get_button():
+            if self.interface.get_button():
                 return True
             return False
         except Exception as e:
