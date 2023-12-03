@@ -41,6 +41,21 @@
                         if (Date.now() - lets_start_game > 3000 && lets_start_game != 0) {
                             lets_start_game = 0;
                             game_status = true;
+                            if (player) {
+                                $('#status').text('Spieler A ist am Zug')
+                                $('#player_a')[0].play();
+                                player = false;
+                                plays_a++;
+                                $('#letter_A').css('color', 'gold')
+                                $('#letter_B').css('color', '#d1ccd9')
+                            } else {
+                                $('#status').text('Spieler B ist am Zug')
+                                $('#player_b')[0].play();
+                                player = true;
+                                plays_b++;
+                                $('#letter_A').css('color', '#d1ccd9')
+                                $('#letter_B').css('color', 'gold')
+                            }
                         }
 
                         if(show_win_massage != 0) {
@@ -78,10 +93,13 @@
                             // if both cups are placed and game is not running
                             if (!game_status && show_win_massage == 0) {
                                 if (data.cup_A_status && data.cup_B_status) {
-                                    $('#status').text('Sie können das Spiel starten')
+                                    if(lets_start_game == 0){
+                                        $('#status').text('Sie können das Spiel starten')
+                                    }
                                     // $('#start')[0].play();
                                     // if game is not started and button is briefly pressed
                                     if (button_status == "accept") {
+                                        $('#status').text('Das Spiel beginnt! Bitte warten')
                                         $('#game_starts')[0].play();
                                         lets_start_game = Date.now();
                                         game_nr++;
@@ -111,7 +129,7 @@
                             }
 
                             // if game is running and button is long pressed
-                            if (button_status == "reload" && game_status) {
+                            if (button_status == "reload" && game_nr > 0) {
                                 $('#status').text('Das Spiel wird neugestartet')
                                 $('#reload')[0].play();
                                 game_status = false;
@@ -241,7 +259,6 @@
     <audio id="reload" src="https://nathzenh.ch/mockup/reload.ogg"></audio></audio>
     <audio id="start" src="https://nathzenh.ch/mockup/start.ogg"></audio></audio>
     <audio id="win" src="https://nathzenh.ch/mockup/win.wav"></audio></audio>
-    <h1>Smart Pong Status</h1>
     <div class="center">
         <p id="status" class="text-center">Plazieren Sie alle Becher um das Spiel zu starten</p>
         
