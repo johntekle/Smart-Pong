@@ -1,4 +1,5 @@
 from simple_rpc import Interface
+import sys
 
 
 class Smart_Pong_RPC():
@@ -8,6 +9,8 @@ class Smart_Pong_RPC():
             self.interface = Interface(port, baudrate)
         except Exception as e:
             print(e)
+            sys.exit()
+            
 
     def get_cup_A(self) -> bool:
         try:
