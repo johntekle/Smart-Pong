@@ -13,7 +13,7 @@ cupA_detected = False
 cupB_detected = False
 button_detected = False
 
-parser = argparse.ArgumentParser(description='Process COM port name')
+parser = argparse.ArgumentParser(description='Process COM port name', usage='Example python app.py COM11')
 parser.add_argument('port', help='COM port name')
 args = parser.parse_args()
 
