@@ -3,6 +3,7 @@ from threading import Thread
 import time
 from simple_rpc import Interface
 from rpc import Smart_Pong_RPC
+import argparse
 
 app = Flask(__name__)
 
@@ -12,7 +13,12 @@ cupA_detected = False
 cupB_detected = False
 button_detected = False
 
-smart_rpc = Smart_Pong_RPC("COM11")
+parser = argparse.ArgumentParser(description='Process COM port name')
+parser.add_argument('port', help='COM port name')
+args = parser.parse_args()
+
+port_name = args.port
+smart_rpc = Smart_Pong_RPC(port_name)
 time.sleep(3)
 
 def poll_sensors():
